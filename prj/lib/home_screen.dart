@@ -4,8 +4,8 @@ import 'patient_screen.dart';
 import 'doctor_screen.dart';
 import 'schedule_screen.dart';
 import 'main.dart';
-import 'booking_screen.dart';
 import 'unconfirmed_patients_screen.dart';
+import 'booking_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -162,15 +162,8 @@ class HomeContentScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Colors.blueAccent, Colors.deepPurpleAccent],
-        ),
-      ),
-      child: FutureBuilder<List<Map<String, dynamic>>>(
+    return Scaffold(
+      body: FutureBuilder<List<Map<String, dynamic>>>(
         future: fetchServices(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -192,23 +185,20 @@ class HomeContentScreen extends StatelessWidget {
           }
 
           final services = snapshot.data!;
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Column(
-              children: [
-                Expanded(
-                  child: ListView.separated(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    itemCount: services.length,
-                    separatorBuilder:
-                        (context, index) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      return ServiceListTile(service: services[index]);
-                    },
-                  ),
+          return Column(
+            children: [
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: services.length,
+                  separatorBuilder:
+                      (context, index) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    return ServiceListTile(service: services[index]);
+                  },
                 ),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),
@@ -226,7 +216,7 @@ class ServiceListTile extends StatelessWidget {
     return Card(
       elevation: 4,
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -237,7 +227,7 @@ class ServiceListTile extends StatelessWidget {
           height: 48,
           decoration: BoxDecoration(
             color: Colors.deepPurple.shade50,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Icon(
             Icons.medical_services,
@@ -247,7 +237,7 @@ class ServiceListTile extends StatelessWidget {
         ),
         title: Text(
           service['Name'] ?? '',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          style: Theme.of(context).textTheme.bodyLarge,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
@@ -255,26 +245,24 @@ class ServiceListTile extends StatelessWidget {
             service['Description'] != null
                 ? Text(
                   service['Description'] ?? '',
-                  style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                  style: Theme.of(context).textTheme.bodyMedium,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 )
                 : null,
         trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
               service['Price'] != null ? '${service['Price']} ₽' : '',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.deepPurple,
-              ),
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             const Text(
               'за сеанс',
-              style: TextStyle(fontSize: 11, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 11,
+                fontFamily: 'Manrope',
+                color: Colors.grey,
+              ),
             ),
           ],
         ),

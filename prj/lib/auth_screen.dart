@@ -68,9 +68,15 @@ class _AuthScreenState extends State<AuthScreen> {
       );
     } on AuthException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка авторизации: ${e.message}')),
-      );
+      String errorMessage;
+      if (e.message.contains('Invalid login')) {
+        errorMessage = 'Аккаунта с данной почтой не существует';
+      } else {
+        errorMessage = 'Ошибка авторизации: ${e.message}';
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -132,9 +138,6 @@ class _AuthScreenState extends State<AuthScreen> {
                           decoration: InputDecoration(
                             labelText: 'Email',
                             prefixIcon: const Icon(Icons.email_outlined),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
                           ),
                           keyboardType: TextInputType.emailAddress,
                           inputFormatters: [
@@ -190,26 +193,10 @@ class _AuthScreenState extends State<AuthScreen> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _signIn,
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
                             child:
                                 _isLoading
-                                    ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                    : Text(
-                                      'Войти',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
+                                    ? const CircularProgressIndicator()
+                                    : const Text('Войти'),
                           ),
                         ),
                         const SizedBox(height: 16),

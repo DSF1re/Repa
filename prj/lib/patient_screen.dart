@@ -1,5 +1,6 @@
 import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'main.dart';
 
 class PatientsScreen extends StatefulWidget {
@@ -279,7 +280,7 @@ class _EditPatientScreenState extends State<EditPatientScreen> {
       return 'Поле обязательно для заполнения';
     }
     if (!RegExp(r'^[а-яА-ЯёЁ\s-]+$').hasMatch(value)) {
-      return 'Только русские буквы и дефис';
+      return 'Только русские буквы, пробелы и дефисы';
     }
     if (value.length > 50) {
       return 'Максимальная длина — 50 символов';
@@ -287,12 +288,29 @@ class _EditPatientScreenState extends State<EditPatientScreen> {
     return null;
   }
 
+  String? _validatePatronymic(String value, String fieldName) {
+    if (value.isNotEmpty) {
+      if (!RegExp(r'^[а-яА-ЯёЁ\s-]+$').hasMatch(value)) {
+        return 'Только русские буквы, пробелы и дефисы';
+      }
+      if (value.length > 50) {
+        return 'Максимальная длина — 50 символов';
+      }
+      return null;
+    }
+    return null;
+  }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
+      initialDate:
+          _selectedDate ??
+          DateTime.now().subtract(const Duration(days: 365 * 18)),
       firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
+      lastDate: DateTime.now().subtract(
+        const Duration(days: 365 * 18),
+      ), // Минимум 18 лет
     );
 
     if (picked != null && picked != _selectedDate) {
@@ -432,6 +450,12 @@ class _EditPatientScreenState extends State<EditPatientScreen> {
                   prefixIcon: Icon(Icons.person_outline),
                 ),
                 validator: (value) => _validateRequiredField(value, 'Фамилия'),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^[а-яА-ЯёЁ\s-]+$'),
+                  ),
+                  LengthLimitingTextInputFormatter(50),
+                ],
                 textCapitalization: TextCapitalization.words,
               ),
               const SizedBox(height: 16),
@@ -442,6 +466,12 @@ class _EditPatientScreenState extends State<EditPatientScreen> {
                   prefixIcon: Icon(Icons.person_outline),
                 ),
                 validator: (value) => _validateRequiredField(value, 'Имя'),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^[а-яА-ЯёЁ\s-]+$'),
+                  ),
+                  LengthLimitingTextInputFormatter(50),
+                ],
                 textCapitalization: TextCapitalization.words,
               ),
               const SizedBox(height: 16),
@@ -451,7 +481,13 @@ class _EditPatientScreenState extends State<EditPatientScreen> {
                   labelText: 'Отчество',
                   prefixIcon: Icon(Icons.person_outline),
                 ),
-                validator: (value) => _validateRequiredField(value, 'Отчество'),
+                validator: (value) => _validatePatronymic(value!, 'Отчество'),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^[а-яА-ЯёЁ\s-]+$'),
+                  ),
+                  LengthLimitingTextInputFormatter(50),
+                ],
                 textCapitalization: TextCapitalization.words,
               ),
               const SizedBox(height: 16),

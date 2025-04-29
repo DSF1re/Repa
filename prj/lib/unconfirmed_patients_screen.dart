@@ -56,7 +56,7 @@ class _UnconfirmedPatientsScreenState extends State<UnconfirmedPatientsScreen> {
     try {
       await supabase
           .from('User')
-          .update({'Status': 'Подтвержден'})
+          .update({'Status': 'Активен'})
           .eq('ID_User', userId);
 
       await _fetchUnconfirmedPatients();
@@ -108,7 +108,6 @@ class _UnconfirmedPatientsScreenState extends State<UnconfirmedPatientsScreen> {
                         child: ListTile(
                           title: Text(
                             '${patient['Surname']} ${patient['Name']} ${patient['Patronymic'] ?? ''}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

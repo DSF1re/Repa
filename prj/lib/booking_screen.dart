@@ -7,6 +7,7 @@ class BookingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: Text('Оформление')),
       body: Padding(
@@ -14,12 +15,9 @@ class BookingScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              service['Name'],
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
+            Text(service['Name'], style: theme.textTheme.titleMedium),
             const SizedBox(height: 16),
-            Text(service['Description'], style: const TextStyle(fontSize: 16)),
+            Text(service['Description'], style: theme.textTheme.bodyLarge),
             const SizedBox(height: 16),
             Text(
               'Цена: ${service['Price']} ₽',

@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:prj/booking_screen.dart';
+import 'package:prj/doctor_screen.dart';
+import 'package:prj/home_screen.dart';
+import 'package:prj/patient_screen.dart';
+import 'package:prj/registration_screen.dart';
+import 'package:prj/schedule_screen.dart';
+import 'package:prj/unconfirmed_patients_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'auth_screen.dart';
@@ -41,7 +48,7 @@ class MyApp extends StatelessWidget {
           ),
           iconTheme: IconThemeData(color: Colors.white),
         ),
-        textTheme: TextTheme(
+        textTheme: const TextTheme(
           titleLarge: TextStyle(
             fontFamily: 'Manrope',
             fontSize: 24,
@@ -54,19 +61,61 @@ class MyApp extends StatelessWidget {
             color: Colors.black,
             fontWeight: FontWeight.w300,
           ),
-        ),
-        drawerTheme: const DrawerThemeData(backgroundColor: Colors.white),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).primaryColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 15),
+          bodyLarge: TextStyle(
+            fontFamily: 'Manrope',
+            fontSize: 16,
+            color: Colors.black,
+            fontWeight: FontWeight.w400,
+          ),
+          titleMedium: TextStyle(
+            fontFamily: 'Manrope',
+            fontSize: 18,
+            color: Colors.black,
+            fontWeight: FontWeight.w500,
           ),
         ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+          labelStyle: const TextStyle(
+            fontFamily: 'Manrope',
+            fontSize: 14,
+            color: Colors.black,
+          ),
+        ),
+        cardTheme: const CardTheme(
+          elevation: 4,
+          margin: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12.0)),
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.deepPurpleAccent,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+          ),
+        ),
+        drawerTheme: const DrawerThemeData(backgroundColor: Colors.white),
       ),
-      home: const AuthScreen(),
+      routes: {
+        '/': (context) => const AuthScreen(),
+        '/home': (context) => const HomeScreen(),
+        '/booking':
+            (context) => BookingScreen(
+              service:
+                  ModalRoute.of(context)!.settings.arguments
+                      as Map<String, dynamic>,
+            ),
+        '/registration': (context) => const RegistrationScreen(),
+        '/unconfirmedPatients': (context) => const UnconfirmedPatientsScreen(),
+        '/schedule': (context) => const ScheduleScreen(),
+        '/doctors': (context) => const DoctorsScreen(),
+        '/patients': (context) => const PatientsScreen(),
+      },
       debugShowCheckedModeBanner: false,
       debugShowMaterialGrid: false,
     );

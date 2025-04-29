@@ -71,12 +71,25 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   Future<void> _register() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    // Простая проверка email до запроса
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(email)) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Некорректный email')));
+      return;
+    }
+
     if (_surnameController.text.isEmpty ||
         _nameController.text.isEmpty ||
-        _emailController.text.isEmpty ||
-        _passwordController.text.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
         _selectedRole == null ||
         _selectedDate == null ||
+        _passportController.text.length < 11 ||
         _passportController.text.isEmpty ||
         (_selectedRole == 'Доктор' && _selectedSpecialization == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -89,8 +102,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
     try {
       final AuthResponse response = await supabase.auth.signUp(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+        email: email,
+        password: password,
       );
 
       if (response.user != null) {
@@ -99,7 +112,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           'Surname': _surnameController.text.trim(),
           'Name': _nameController.text.trim(),
           'Patronymic': _patronymicController.text.trim(),
-          'Email': _emailController.text.trim(),
+          'Email': email,
           'Password': _passportController.text.trim(),
           'Role': _selectedRole,
           'BDay': _selectedDate!.toIso8601String(),
@@ -128,8 +141,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       if (!mounted) return;
 
       String errorMessage;
-      if (e.message.contains('over_email_send_rate_limit')) {
+
+      if (e.message.contains('User already registered') ||
+          e.message.contains('User already exists')) {
+        errorMessage = 'Пользователь с таким email уже существует.';
+      } else if (e.message.contains('Invalid email') ||
+          e.message.contains('is invalid')) {
+        errorMessage = 'Некорректный формат email.';
+      } else if (e.message.contains('Email rate limit exceeded') ||
+          e.message.contains('over_email_send_rate_limit')) {
         errorMessage = 'Слишком много запросов. Попробуйте позже.';
+      } else if (e.message.contains('Password should be at least 6')) {
+        errorMessage = 'Пароль должен быть не менее 6 символов';
       } else {
         errorMessage = 'Ошибка регистрации: ${e.message}';
       }
@@ -138,10 +161,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text(errorMessage)));
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Произошла ошибка: ${e.toString()}')),
-      );
+      if (e is PostgrestException && e.message.contains('insert or update')) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ошибка: Электронная почта уже занята')),
+        );
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Произошла ошибка: ${e.toString()}')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

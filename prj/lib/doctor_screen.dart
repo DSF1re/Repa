@@ -1,6 +1,6 @@
 import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/services.dart';
 import 'main.dart';
 
 class DoctorsScreen extends StatefulWidget {
@@ -157,9 +157,10 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                               children: [
                                 if (age != null) Text('Возраст: $age лет'),
                                 if (doctor['Email'] != null)
+                                  Text('Email: ${doctor['Email']}'),
+                                if (doctor['Specialization'] != null)
                                   Text(
-                                    'Email: ${doctor['Email']}',
-                                    style: const TextStyle(fontSize: 12),
+                                    'Специальность: ${doctor['Specialization']}',
                                   ),
                               ],
                             ),
@@ -232,10 +233,19 @@ class _EditDoctorScreenState extends State<EditDoctorScreen> {
   late final TextEditingController _patronymicController;
   late final TextEditingController _bdayController;
   late DateTime? _selectedDate;
+  String? _selectedSpecialization;
   final _formKey = GlobalKey<FormState>();
   bool _isSaving = false;
-  bool _isDeleting = false;
-  final SupabaseClient supabase = Supabase.instance.client;
+  bool _isDeactivating = false;
+
+  final List<String> _specializations = [
+    'Терапевт',
+    'Педиатр',
+    'Офтальмолог',
+    'Невролог',
+    'Стоматолог',
+    'Травматолог',
+  ];
 
   @override
   void initState() {
@@ -250,6 +260,7 @@ class _EditDoctorScreenState extends State<EditDoctorScreen> {
         widget.doctor['BDay'] != null
             ? DateTime.tryParse(widget.doctor['BDay'])
             : null;
+    _selectedSpecialization = widget.doctor['Specialization'];
   }
 
   @override
@@ -266,7 +277,7 @@ class _EditDoctorScreenState extends State<EditDoctorScreen> {
       return 'Поле обязательно для заполнения';
     }
     if (!RegExp(r'^[а-яА-ЯёЁ\s-]+$').hasMatch(value)) {
-      return 'Только русские буквы и дефис';
+      return 'Только русские буквы, пробелы и дефисы';
     }
     if (value.length > 50) {
       return 'Максимальная длина — 50 символов';
@@ -277,9 +288,13 @@ class _EditDoctorScreenState extends State<EditDoctorScreen> {
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
+      initialDate:
+          _selectedDate ??
+          DateTime.now().subtract(const Duration(days: 365 * 18)),
       firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
+      lastDate: DateTime.now().subtract(
+        const Duration(days: 365 * 18),
+      ), // Минимум 18 лет
     );
 
     if (picked != null && picked != _selectedDate) {
@@ -287,36 +302,6 @@ class _EditDoctorScreenState extends State<EditDoctorScreen> {
         _selectedDate = picked;
         _bdayController.text = picked.toIso8601String().split('T')[0];
       });
-    }
-  }
-
-  Future<void> _removeDoctor() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isDeleting = true);
-
-    try {
-      await supabase
-          .from('User')
-          .delete()
-          .eq('ID_User', widget.doctor['ID_User']);
-
-      await supabase.auth.admin.deleteUser(widget.doctor['ID_User']);
-
-      if (mounted) {
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      developer.log('Ошибка удаления врача: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка удаления: ${e.toString()}')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isDeleting = false);
-      }
     }
   }
 
@@ -332,6 +317,7 @@ class _EditDoctorScreenState extends State<EditDoctorScreen> {
         'Name': _nameController.text.trim(),
         'Patronymic': _patronymicController.text.trim(),
         'BDay': _bdayController.text.trim(),
+        'Specialization': _selectedSpecialization,
       };
 
       await supabase
@@ -356,14 +342,45 @@ class _EditDoctorScreenState extends State<EditDoctorScreen> {
     }
   }
 
-  void _confirmDelete() {
+  Future<void> _deactivateDoctor() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isDeactivating = true);
+
+    try {
+      await supabase
+          .from('User')
+          .update({'Status': 'Не активен'})
+          .eq('ID_User', widget.doctor['ID_User']);
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Доктор деактивирован')));
+      }
+    } catch (e) {
+      developer.log('Ошибка деактивации врача: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Ошибка: ${e.toString()}')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isDeactivating = false);
+      }
+    }
+  }
+
+  void _confirmDeactivate() {
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Удалить врача?'),
+            title: const Text('Деактивировать врача?'),
             content: const Text(
-              'Вы уверены, что хотите удалить этого врача? Это действие нельзя отменить.',
+              'Доктор будет помечен как неактивный и больше не сможет войти в систему.',
             ),
             actions: [
               TextButton(
@@ -373,10 +390,10 @@ class _EditDoctorScreenState extends State<EditDoctorScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  _removeDoctor();
+                  _deactivateDoctor();
                 },
                 child: const Text(
-                  'Удалить',
+                  'Деактивировать',
                   style: TextStyle(color: Colors.red),
                 ),
               ),
@@ -415,6 +432,12 @@ class _EditDoctorScreenState extends State<EditDoctorScreen> {
                   prefixIcon: Icon(Icons.person_outline),
                 ),
                 validator: (value) => _validateRequiredField(value, 'Фамилия'),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^[а-яА-ЯёЁ\s-]+$'),
+                  ),
+                  LengthLimitingTextInputFormatter(50),
+                ],
                 textCapitalization: TextCapitalization.words,
               ),
               const SizedBox(height: 16),
@@ -425,6 +448,12 @@ class _EditDoctorScreenState extends State<EditDoctorScreen> {
                   prefixIcon: Icon(Icons.person_outline),
                 ),
                 validator: (value) => _validateRequiredField(value, 'Имя'),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^[а-яА-ЯёЁ\s-]+$'),
+                  ),
+                  LengthLimitingTextInputFormatter(50),
+                ],
                 textCapitalization: TextCapitalization.words,
               ),
               const SizedBox(height: 16),
@@ -434,7 +463,12 @@ class _EditDoctorScreenState extends State<EditDoctorScreen> {
                   labelText: 'Отчество',
                   prefixIcon: Icon(Icons.person_outline),
                 ),
-                validator: (value) => _validateRequiredField(value, 'Отчество'),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^[а-яА-ЯёЁ\s-]+$'),
+                  ),
+                  LengthLimitingTextInputFormatter(50),
+                ],
                 textCapitalization: TextCapitalization.words,
               ),
               const SizedBox(height: 16),
@@ -453,6 +487,32 @@ class _EditDoctorScreenState extends State<EditDoctorScreen> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Укажите дату рождения';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _selectedSpecialization,
+                decoration: const InputDecoration(
+                  labelText: 'Специализация',
+                  prefixIcon: Icon(Icons.medical_services_outlined),
+                ),
+                items:
+                    _specializations.map((String specialization) {
+                      return DropdownMenuItem<String>(
+                        value: specialization,
+                        child: Text(specialization),
+                      );
+                    }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedSpecialization = value;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Выберите специализацию';
                   }
                   return null;
                 },
@@ -488,11 +548,17 @@ class _EditDoctorScreenState extends State<EditDoctorScreen> {
               if (widget.currentUserRole == 'Администратор')
                 Padding(
                   padding: const EdgeInsets.only(top: 16.0),
-                  child: TextButton(
-                    onPressed: _isDeleting ? null : _confirmDelete,
-                    child: Text(
-                      _isDeleting ? 'Удаление...' : 'Удалить врача',
-                      style: const TextStyle(color: Colors.red),
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.person_off, color: Colors.white),
+                    label: Text(
+                      _isDeactivating
+                          ? 'Деактивация...'
+                          : 'Деактивировать врача',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    onPressed: _isDeactivating ? null : _confirmDeactivate,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
                     ),
                   ),
                 ),

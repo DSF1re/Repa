@@ -125,9 +125,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isMobile = MediaQuery.of(context).size.width < 600;
     final theme = Theme.of(context);
-
     return Scaffold(
       body: Column(
         children: [
@@ -141,11 +139,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     labelText: 'Поиск',
                     hintText: 'ФИО, специальность или кабинет',
                     prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    filled: true,
-                    fillColor: theme.cardColor,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -226,11 +219,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         final endTime = schedule['Time_End'] ?? '--';
 
                         return Card(
-                          margin: EdgeInsets.symmetric(
-                            horizontal: isMobile ? 12.0 : 16.0,
-                            vertical: 6.0,
-                          ),
-                          elevation: 2,
                           child: ListTile(
                             title: Text(fullName),
                             subtitle: Column(
@@ -245,7 +233,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                                 Text('Время: $startTime - $endTime'),
                               ],
                             ),
-                            onTap: () {},
                           ),
                         );
                       },
