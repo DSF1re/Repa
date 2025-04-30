@@ -99,7 +99,7 @@ class _UnconfirmedPatientsScreenState extends State<UnconfirmedPatientsScreen> {
 
                   final patients = snapshot.data!;
                   return ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     itemCount: patients.length,
                     itemBuilder: (context, index) {
                       final patient = patients[index];

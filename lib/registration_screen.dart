@@ -193,9 +193,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           child: SingleChildScrollView(
             padding: EdgeInsets.all(8),
             child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: 600,
-              ),
+              constraints: BoxConstraints(maxWidth: 600),
               child: Card(
                 child: Padding(
                   padding: EdgeInsets.all(20),

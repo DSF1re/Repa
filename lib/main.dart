@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'package:prj/booking_screen.dart';
 import 'package:prj/doctor_screen.dart';
 import 'package:prj/home_screen.dart';
@@ -6,8 +9,7 @@ import 'package:prj/patient_screen.dart';
 import 'package:prj/registration_screen.dart';
 import 'package:prj/schedule_screen.dart';
 import 'package:prj/unconfirmed_patients_screen.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+
 import 'auth_screen.dart';
 
 Future<void> main() async {
@@ -101,7 +103,7 @@ class MyApp extends StatelessWidget {
         ),
         drawerTheme: const DrawerThemeData(backgroundColor: Colors.white),
       ),
-      routes: {
+      routes: <String, WidgetBuilder>{
         '/': (context) => const AuthScreen(),
         '/home': (context) => const HomeScreen(),
         '/booking':
