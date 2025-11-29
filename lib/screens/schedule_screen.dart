@@ -93,7 +93,6 @@ class _ScheduleViewState extends State<ScheduleView> {
           ],
         ),
       ),
-      // ✅ Добавили FloatingActionButton для администратора
       floatingActionButton: BlocBuilder<AppAuthBloc, AppAuthState>(
         builder: (context, authState) {
           final isAdmin = authState.user?.role == UserRole.admin;
@@ -108,7 +107,6 @@ class _ScheduleViewState extends State<ScheduleView> {
                 ),
               );
 
-              // Если расписание было успешно добавлено, обновляем список
               if (result == true && context.mounted) {
                 context.read<ScheduleBloc>().add(const ScheduleLoadRequested());
               }

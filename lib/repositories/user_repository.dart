@@ -7,7 +7,6 @@ class UserRepository {
   UserRepository({required SupabaseClient supabaseClient})
     : _supabaseClient = supabaseClient;
 
-  /// Получение всех активных докторов
   Future<List<UserModel>> getDoctors() async {
     try {
       final response = await _supabaseClient

@@ -3,8 +3,9 @@ import 'package:clinic_app/bloc/booking/booking_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../models/service_model.dart';
-import '../../models/user_model.dart';
+import '../bloc/auth/auth_bloc.dart';
+import '../models/service_model.dart';
+import '../models/user_model.dart';
 
 class BookingScreen extends StatelessWidget {
   final ServiceModel service;
@@ -13,15 +14,78 @@ class BookingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) {
-        final supabase = Supabase.instance.client;
-        final bookingRepo = BookingRepository(supabase);
+    return BlocBuilder<AppAuthBloc, AppAuthState>(
+      builder: (context, authState) {
+        if (authState.status != AppAuthStatus.authenticated) {
+          return _buildUnauthorizedScreen(
+            context,
+            'Войдите в систему как пациент',
+          );
+        }
 
-        return BookingBloc(bookingRepo: bookingRepo, supabase: supabase)
-          ..add(BookingStarted(service));
+        if (authState.user?.role != UserRole.patient) {
+          return _buildUnauthorizedScreen(
+            context,
+            'Запись доступна только для пациентов',
+          );
+        }
+
+        return BlocProvider(
+          create: (context) {
+            final supabase = Supabase.instance.client;
+            final bookingRepo = BookingRepository(supabase);
+
+            return BookingBloc(bookingRepo: bookingRepo, supabase: supabase)
+              ..add(BookingStarted(service));
+          },
+          child: BookingView(service: service),
+        );
       },
-      child: BookingView(service: service),
+    );
+  }
+
+  Widget _buildUnauthorizedScreen(BuildContext context, String message) {
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: const Text('Запись на прием'),
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.block, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepPurple,
+                foregroundColor: Colors.white,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: const Text('Вернуться назад'),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -433,7 +497,6 @@ class BookingView extends StatelessWidget {
     );
   }
 
-  // ✅ Новый виджет для выбора способа оплаты
   Widget _buildPaymentMethodSelection(
     BuildContext context,
     BookingState state,

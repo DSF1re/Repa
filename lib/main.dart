@@ -2,7 +2,9 @@ import 'package:clinic_app/bloc/doctors/doctors_bloc.dart';
 import 'package:clinic_app/bloc/patients/patients_bloc.dart';
 import 'package:clinic_app/bloc/schedule/schedule_bloc.dart';
 import 'package:clinic_app/bloc/unconfirmed_patients/unconfirmed_patients_bloc.dart';
+import 'package:clinic_app/bloc/records/records_bloc.dart';
 import 'package:clinic_app/repositories/doctors_repository.dart';
+import 'package:clinic_app/repositories/records_repository.dart';
 import 'package:clinic_app/repositories/schedule_repository.dart';
 import 'package:clinic_app/theme/theme.dart';
 import 'package:flutter/material.dart';
@@ -60,6 +62,11 @@ class MyApp extends StatelessWidget {
             userRepository: UserRepository(supabaseClient: supabase),
           ),
         ),
+        BlocProvider<RecordsBloc>(
+          create: (context) => RecordsBloc(
+            recordsRepository: RecordsRepository(supabaseClient: supabase),
+          ),
+        ),
         RepositoryProvider<AuthRepository>(
           create: (context) => AuthRepository(),
         ),
@@ -68,6 +75,9 @@ class MyApp extends StatelessWidget {
         ),
         RepositoryProvider<ServiceRepository>(
           create: (context) => ServiceRepository(supabaseClient: supabase),
+        ),
+        RepositoryProvider<RecordsRepository>(
+          create: (context) => RecordsRepository(supabaseClient: supabase),
         ),
       ],
       child: BlocProvider<AppAuthBloc>(

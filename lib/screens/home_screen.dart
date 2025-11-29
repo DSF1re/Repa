@@ -1,8 +1,9 @@
 import 'package:clinic_app/screens/doctor_screen.dart';
 import 'package:clinic_app/screens/patient_screen.dart';
 import 'package:clinic_app/screens/schedule_screen.dart';
-import 'package:clinic_app/screens/service_cart.dart';
+import 'package:clinic_app/widgets/service_card.dart';
 import 'package:clinic_app/screens/unconfirmed_patients_screen.dart';
+import 'package:clinic_app/screens/records_screen.dart'; // Добавлен импорт
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -22,7 +23,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  // ✅ Динамические заголовки в зависимости от роли
   List<String> _getTitles(UserRole userRole) {
     switch (userRole) {
       case UserRole.admin:
@@ -34,9 +34,9 @@ class _HomeScreenState extends State<HomeScreen> {
           'Неподтвержденные пациенты',
         ];
       case UserRole.doctor:
-        return ['Наши услуги', 'Пациенты', 'Врачи', 'Расписание'];
+        return ['Наши услуги', 'Пациенты', 'Врачи', 'Расписание', 'Записи'];
       case UserRole.patient:
-        return ['Наши услуги', 'Врачи', 'Расписание'];
+        return ['Наши услуги', 'Врачи', 'Расписание', 'Записи'];
     }
   }
 
@@ -46,7 +46,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  // ✅ Получение экрана с учетом роли пользователя
   Widget _getScreen(int index, UserRole userRole) {
     switch (userRole) {
       case UserRole.admin:
@@ -74,6 +73,8 @@ class _HomeScreenState extends State<HomeScreen> {
             return const DoctorsScreen();
           case 3:
             return const ScheduleScreen();
+          case 4:
+            return const RecordsScreen();
           default:
             return const HomeContentScreen();
         }
@@ -85,6 +86,8 @@ class _HomeScreenState extends State<HomeScreen> {
             return const DoctorsScreen();
           case 2:
             return const ScheduleScreen();
+          case 3:
+            return const RecordsScreen();
           default:
             return const HomeContentScreen();
         }
@@ -206,6 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Colors.orange,
               ),
 
+            // ✅ Расписание - для всех ролей (с разными индексами)
             if (userRole == UserRole.admin || userRole == UserRole.doctor)
               _buildDrawerItem(
                 3,
@@ -220,6 +224,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 'Расписание',
                 Colors.purple,
               ),
+
+            // ✅ Записи - для врачей и пациентов
+            if (userRole == UserRole.doctor)
+              _buildDrawerItem(4, Icons.list_alt, 'Записи', Colors.teal)
+            else if (userRole == UserRole.patient)
+              _buildDrawerItem(3, Icons.list_alt, 'Записи', Colors.teal),
 
             if (userRole == UserRole.admin)
               _buildDrawerItem(

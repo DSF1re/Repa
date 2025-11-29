@@ -20,10 +20,8 @@ class _UnconfirmedPatientsScreenState extends State<UnconfirmedPatientsScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // ✅ Загружаем данные при первом открытии
     _refreshData();
 
-    // ✅ Устанавливаем таймер на обновление каждые 5 секунд
     _refreshTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (mounted) {
         _refreshData();
@@ -34,21 +32,19 @@ class _UnconfirmedPatientsScreenState extends State<UnconfirmedPatientsScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _refreshTimer?.cancel(); // ✅ Отменяем таймер при выходе
+    _refreshTimer?.cancel();
     super.dispose();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // ✅ Обновляем данные при каждом входе на экран
     _refreshData();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    // ✅ Обновляем при возврате в приложение
     if (state == AppLifecycleState.resumed) {
       _refreshData();
     }
@@ -174,7 +170,6 @@ class UnconfirmedPatientsView extends StatelessWidget {
     );
   }
 
-  // ✅ Добавлен Pull-to-Refresh для ручного обновления
   Widget _buildPatientsListWithRefresh(
     List<Map<String, dynamic>> patients,
     context,
@@ -185,7 +180,6 @@ class UnconfirmedPatientsView extends StatelessWidget {
           const UnconfirmedPatientsLoadRequested(),
         );
 
-        // Ждем завершения загрузки
         await context.read<UnconfirmedPatientsBloc>().stream.firstWhere(
           (state) => state.status != UnconfirmedPatientsStatus.loading,
         );

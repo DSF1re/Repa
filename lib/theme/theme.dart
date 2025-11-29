@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 final theme = ThemeData(
   primaryColor: Colors.deepPurpleAccent,
   primarySwatch: Colors.deepPurple,
+  scaffoldBackgroundColor: Colors.white,
   appBarTheme: const AppBarTheme(
     centerTitle: true,
     backgroundColor: Colors.deepPurple,
@@ -50,6 +51,7 @@ final theme = ThemeData(
   ),
   cardTheme: const CardThemeData(
     elevation: 4,
+    color: Colors.white,
     margin: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.all(Radius.circular(18.0)),
